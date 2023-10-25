@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:textgame/menu_page.dart';
 
 // import 'package:textgame/Data.dart';
-// import 'package:xml/xml.dart' as xml;
+import 'package:xml/xml.dart' as xml;
 
 void main() {
   runApp(const MyApp());
@@ -33,14 +34,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   // Future<List<Con>> getConFromXML(BuildContext context) async {
   //   String datalist =
   //   await DefaultAssetBundle.of(context).loadString("assets/data/data.xml");
@@ -51,12 +44,6 @@ class _MyHomePageState extends State<MyHomePage> {
   //         int.parse(element.findElements("age").first.text));
   //   }).toList();
   // }
-
-  void _loadData() async {
-    final temporaryList = [];
-
-    // Code for parsing XML data.
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +64,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 20)),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return const MenuPage();
+                }));
+              },
               child: const Text('Start'),
             ),
           ],
@@ -103,11 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
     //         }
     //       },
     //     ),
-    //   ),
-    //   floatingActionButton: FloatingActionButton(
-    //     onPressed: _incrementCounter,
-    //     tooltip: 'Increment',
-    //     child: const Icon(Icons.add),
     //   ),
     // );
   }
