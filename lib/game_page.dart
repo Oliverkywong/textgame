@@ -8,7 +8,22 @@ class GamePage extends StatefulWidget {
   }
 }
 
+class Monster {
+  String name = 'Monster';
+  int hp = 100;
+  int attack = 10;
+}
+
+class Player {
+  String name = 'Player';
+  int hp = 100;
+  int attack = 10;
+}
+
 class GamePageState extends State<GamePage> {
+  var monster = Monster();
+  var player = Player();
+
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
@@ -18,12 +33,20 @@ class GamePageState extends State<GamePage> {
           child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text('Monster'),
+          Text(monster.name),
+          Text('Monster HP: ' + (monster.hp).toString()),
+          Text(player.name),
+          Text('Player HP: ' + (player.hp).toString()),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    monster.hp -= 10;
+                    player.hp = player.hp - monster.attack;
+                  });
+                },
                 child: const Text('Attack'),
               ),
               const SizedBox(width: 10),
