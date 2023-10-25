@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+import 'package:textgame/game_page.dart';
+
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
   @override
@@ -27,7 +29,11 @@ class MenuPageState extends State<MenuPage> {
             children: <Widget>[
               ElevatedButton(
                 style: style,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return GamePage();
+                  }));
+                },
                 child: const Text('New Gmae'),
               ),
               const SizedBox(height: 10),
