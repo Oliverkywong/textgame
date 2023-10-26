@@ -10,11 +10,10 @@ class GamePage extends StatefulWidget {
 
 class GamePageState extends State<GamePage> {
   int _selectedIndex = 1;
-  bool fight = false;
   final List<Widget> _widgetOptions = <Widget>[
-    const HomeScreen(),
+    const Attributes(),
     const Game(),
-    const ProfileScreen()
+    const Map()
   ];
 
   void _onItemTapped(int index) {
@@ -52,15 +51,53 @@ class GamePageState extends State<GamePage> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
+class Attributes extends StatefulWidget {
+  const Attributes({super.key});
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Screen'),
-    );
+  State<StatefulWidget> createState() {
+    return AttributesState();
   }
+}
+
+class AttributesState extends State<Attributes> {
+  @override
+  Widget build(BuildContext context) => Scaffold(
+      body: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+            const Text('head: '),
+            Container(
+                margin: const EdgeInsets.all(10.0),
+                width: 100,
+                height: 65,
+                child: const Column(children: <Widget>[
+                  ListTile(
+                    title: Text('item'),
+                    subtitle: Text('HP +10'),
+                  ),
+                ])),
+            const Text('body: '),
+            Container(
+                margin: const EdgeInsets.all(10.0),
+                width: 100,
+                height: 65,
+                child: const Column(children: <Widget>[
+                  ListTile(
+                    title: Text('item2'),
+                    subtitle: Text('HP +10'),
+                  ),
+                ])),
+            const Text('weapon: '),
+            Container(
+                margin: const EdgeInsets.all(10.0),
+                width: 100,
+                height: 65,
+                child: const Column(children: <Widget>[
+                  ListTile(
+                    title: Text('item'),
+                    subtitle: Text('Attack +10'),
+                  ),
+                ])),
+          ])));
 }
 
 class Game extends StatefulWidget {
@@ -72,42 +109,100 @@ class Game extends StatefulWidget {
 }
 
 class GameState extends State<Game> {
+  var monster = Monster();
+  var player = Player();
+  bool fight = false;
+  bool canPress = true;
+
+  Duration timeDelay = const Duration(milliseconds: 3000);
+
+  void monsterattack() {
+    setState(() {
+      player.hp = player.hp - monster.attack;
+      canPress = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-          body: Center(
+      body: Center(
+          child: fight
+              ? Center(
               child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text('welcome 1-1 round'),
-          Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(monster.name),
+                  Text('Monster Lv: ${(monster.lv).toString()}'),
+                  Text('Monster HP: ${(monster.hp).round().toDouble()}'),
+                  Text(player.name),
+                  Text('Player Lv: ${(player.lv).toString()}'),
+                  Text('Player HP: ${(player.hp).round().toDouble()}'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                        onPressed: canPress
+                            ? () {
+                          if (monster.hp <= 0) {
+                            setState(() {
+                              fight = false;
+                              monster = Monster();
+                            });
+                          } else {
+                            setState(() {
+                              canPress = false;
+                              monster.hp -= player.attack;
+                            });
+                            Timer(timeDelay, monsterattack);
+                          }
+                        }
+                            : null,
+                        child: const Text('Attack'),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            fight = false;
+                            monster = Monster();
+                          });
+                        },
+                        child: const Text('Escape'),
+                      ),
+                    ],
+                  )
+                ],
+              ))
+              : Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('left'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('forward'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('right'),
-              ),
+            children: <Widget>[
+              const Text('welcome 1-1 round'),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text('left'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        fight = true;
+                      });
+                    },
+                    child: const Text('forward'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text('right'),
+                  ),
+                ],
+              )
             ],
-          )
-        ],
-      )));
-}
-
-class Fight extends StatefulWidget {
-  const Fight({super.key});
-  @override
-  State<StatefulWidget> createState() {
-    return FightState();
-  }
+          )));
 }
 
 class Monster {
@@ -124,66 +219,14 @@ class Player {
   late double attack = 10 * (1 + (lv - 1) / 10);
 }
 
-class FightState extends State<Fight> {
-  var monster = Monster();
-  var player = Player();
-
-  Duration timeDelay = const Duration(milliseconds: 3000);
-
-  void monsterattack() {
-    setState(() {
-      player.hp = player.hp - monster.attack;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-          body: Center(
-              child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(monster.name),
-          Text('Monster Lv: ${(monster.lv).toString()}'),
-          Text('Monster HP: ${(monster.hp).round().toDouble()}'),
-          Text(player.name),
-          Text('Player Lv: ${(player.lv).toString()}'),
-          Text('Player HP: ${(player.hp).round().toDouble()}'),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  if (monster.hp <= 0) {
-                    setState(() {
-                      monster = Monster();
-                    });
-                  } else {
-                    setState(() {
-                      monster.hp -= player.attack;
-                    });
-                    Timer(timeDelay, monsterattack);
-                  }
-                },
-                child: const Text('Attack'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('Escape'),
-              ),
-            ],
-          )
-        ],
-      )));
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class Map extends StatelessWidget {
+  const Map({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Text('Profile Screen'),
+      child: Text('map'),
     );
   }
 }
+
