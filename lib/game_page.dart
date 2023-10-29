@@ -11,16 +11,25 @@ class GamePage extends StatefulWidget {
 
 class Monster {
   String name = 'Monster';
-  int lv = 1;
+  late int lv = 1;
   late double hp = 100 * (1 + (lv - 1) / 10);
   late double attack = 8 * (1 + (lv - 1) / 10);
+  late double giveExp = 100 * (1 + (lv - 1) / 10);
 }
 
 class Player {
   String name = 'Player';
-  int lv = 1;
+  late int lv = 1;
   late double hp = 100 * (1 + (lv - 1) / 10);
   late double attack = 10 * (1 + (lv - 1) / 10);
+  late double exp = 0;
+  late double lvUp = 100 * ((lv - 1) * 5);
+
+  void checkLVup(){
+    if(exp>=lvUp){
+      lv++;
+    }
+  }
 }
 
 class Head {
@@ -62,10 +71,11 @@ class GamePageState extends State<GamePage> {
   Body body = Body();
   Weapon weapon = Weapon();
   GenMap genMap = GenMap();
+  Player player = Player();
 
   late final List<Widget> _widgetOptions = <Widget>[
     Attributes(head, body, weapon),
-    Game(head, body, weapon, genMap),
+    Game(head, body, weapon, genMap, player),
     Map(genMap)
   ];
 
@@ -123,60 +133,60 @@ class AttributesState extends State<Attributes> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-          body: Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('    head: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: head.hasHead
-                  ? ListTile(
-                      title: Text(head.name),
-                      subtitle: Text(head.des),
-                    )
-                  : const Center(child: Text('No head')))
-        ]),
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('    body: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: body.hasBody
-                  ? ListTile(
-                      title: Text(body.name),
-                      subtitle: Text(body.des),
-                    )
-                  : const Center(child: Text('No body')))
-        ]),
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('weapon: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: weapon.hasWeap
-                  ? ListTile(
-                      title: Text(weapon.name),
-                      subtitle: Text(weapon.des),
-                    )
-                  : const Center(child: Text('No weapon')))
-        ]),
-      ])));
+      body: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              const Text('    head: '),
+              Container(
+                  margin: const EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  ),
+                  width: 100,
+                  height: 70,
+                  child: head.hasHead
+                      ? ListTile(
+                    title: Text(head.name),
+                    subtitle: Text(head.des),
+                  )
+                      : const Center(child: Text('No head')))
+            ]),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              const Text('    body: '),
+              Container(
+                  margin: const EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  ),
+                  width: 100,
+                  height: 70,
+                  child: body.hasBody
+                      ? ListTile(
+                    title: Text(body.name),
+                    subtitle: Text(body.des),
+                  )
+                      : const Center(child: Text('No body')))
+            ]),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              const Text('weapon: '),
+              Container(
+                  margin: const EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  ),
+                  width: 100,
+                  height: 70,
+                  child: weapon.hasWeap
+                      ? ListTile(
+                    title: Text(weapon.name),
+                    subtitle: Text(weapon.des),
+                  )
+                      : const Center(child: Text('No weapon')))
+            ]),
+          ])));
 }
 
 class Game extends StatefulWidget {
@@ -184,10 +194,11 @@ class Game extends StatefulWidget {
   dynamic body;
   dynamic weapon;
   dynamic genMap;
-  Game(this.head, this.body, this.weapon, this.genMap, {super.key});
+  dynamic player;
+  Game(this.head, this.body, this.weapon, this.genMap, this.player, {super.key});
   @override
   State<StatefulWidget> createState() {
-    return GameState(head, body, weapon, genMap);
+    return GameState(head, body, weapon, genMap, player);
   }
 }
 
@@ -196,14 +207,14 @@ class GameState extends State<Game> {
   dynamic body;
   dynamic weapon;
   dynamic genMap;
-  GameState(this.head, this.body, this.weapon, this.genMap);
+  dynamic player;
+  GameState(this.head, this.body, this.weapon, this.genMap, this.player);
 
   dynamic monster = Monster();
-  dynamic player = Player();
   bool fight = false;
   bool canPress = true;
 
-  String msg = 'welcome 1-1 round';
+  String msg = 'welcome to play';
 
   late double playerHP = head.hasHead ? player.hp + head.abt : player.hp;
 
@@ -245,173 +256,188 @@ class GameState extends State<Game> {
       body: Center(
           child: fight
               ? Center(
-                  child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(monster.name),
-                    Text('Monster Lv: ${(monster.lv).toString()}'),
-                    Text('Monster HP: ${(monster.hp).round().toDouble()}'),
-                    Text(player.name),
-                    Text('Player Lv: ${(player.lv).toString()}'),
-                    Text('Player HP: ${(playerHP).round().toDouble()}'),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ElevatedButton(
-                          onPressed: canPress
-                              ? () {
-                                  if (monster.hp <= 0) {
-                                    setState(() {
-                                      fight = false;
-                                      monster = Monster();
-                                    });
-                                  } else {
-                                    setState(() {
-                                      canPress = false;
-                                      weapon.hasWeap
-                                          ? monster.hp -=
-                                              player.attack + weapon.abt
-                                          : monster.hp -= player.attack;
-                                    });
-                                    Timer(timeDelay, monsterattack);
-                                  }
-                                }
-                              : null,
-                          child: const Text('Attack'),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(monster.name),
+                  Text('Monster Lv: ${(monster.lv).toString()}'),
+                  Text('Monster HP: ${(monster.hp).round().toDouble()}'),
+                  Text(player.name),
+                  Text('Player Lv: ${(player.lv).toString()}'),
+                  Text('Player HP: ${(playerHP).round().toDouble()}'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                        onPressed: canPress
+                            ? () {
+                          if (monster.hp <= 0) {
                             setState(() {
                               fight = false;
+                              player.exp += monster.giveExp;
+                              player.checkLVup();
                               monster = Monster();
                             });
-                          },
-                          child: const Text('Escape'),
-                        ),
-                      ],
-                    )
-                  ],
-                ))
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(msg),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          if ((genMap.map)
-                              .contains(genMap.curPosition - genMap.row)) {
-                            genMap.curPosition -= genMap.row;
-                            (genMap.lastpo).add(genMap.curPosition);
-                            switch (Random().nextInt(3) + 1) {
-                              case 1:
-                                msg = 'item room';
-                                getItem();
-                                break;
-                              case 2:
-                                fight = true;
-                                break;
-                              case 3:
-                                msg = 'empty room';
-                                break;
-                            }
                           } else {
-                            msg = 'no forward room';
-                          }
-                        });
-                      },
-                      child: const Text('forward'),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
                             setState(() {
-                              if ((genMap.map)
-                                  .contains(genMap.curPosition - 1)) {
-                                genMap.curPosition--;
-                                (genMap.lastpo).add(genMap.curPosition);
-                                switch (Random().nextInt(3) + 1) {
-                                  case 1:
-                                    msg = 'item room';
-                                    getItem();
-                                    break;
-                                  case 2:
-                                    fight = true;
-                                    break;
-                                  case 3:
-                                    msg = 'empty room';
-                                    break;
-                                }
-                              } else {
-                                msg = 'no left room';
-                              }
+                              canPress = false;
+                              weapon.hasWeap
+                                  ? monster.hp -=
+                                  player.attack + weapon.abt
+                                  : monster.hp -= player.attack;
                             });
-                          },
-                          child: const Text('left'),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              if ((genMap.map)
-                                  .contains(genMap.curPosition + 1)) {
-                                genMap.curPosition++;
-                                (genMap.lastpo).add(genMap.curPosition);
-                                switch (Random().nextInt(3) + 1) {
-                                  case 1:
-                                    msg = 'item room';
-                                    getItem();
-                                    break;
-                                  case 2:
-                                    fight = true;
-                                    break;
-                                  case 3:
-                                    msg = 'empty room';
-                                    break;
-                                }
-                              } else {
-                                msg = 'no right room';
-                              }
-                            });
-                          },
-                          child: const Text('right'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          if ((genMap.map)
-                              .contains(genMap.curPosition + genMap.row)) {
-                            genMap.curPosition += genMap.row;
-                            (genMap.lastpo).add(genMap.curPosition);
-                            switch (Random().nextInt(3) + 1) {
-                              case 1:
-                                msg = 'item room';
-                                getItem();
-                                break;
-                              case 2:
-                                fight = true;
-                                break;
-                              case 3:
-                                msg = 'empty room';
-                                break;
-                            }
-                          } else {
-                            msg = 'no backward room';
+                            Timer(timeDelay, monsterattack);
                           }
-                        });
+                        }
+                            : null,
+                        child: const Text('Attack'),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            fight = false;
+                            monster = Monster();
+                          });
                         },
-                      child: const Text('backward'),
-                    ),
-                  ],
-                )));
+                        child: const Text('Escape'),
+                      ),
+                    ],
+                  )
+                ],
+              ))
+              : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(msg),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    if ((genMap.map)
+                        .contains(genMap.curPosition - genMap.row)) {
+                      genMap.curPosition -= genMap.row;
+                      if(!(genMap.lastpo).contains(genMap.curPosition)){
+                        (genMap.lastpo).add(genMap.curPosition);
+                      }
+                      switch (Random().nextInt(3) + 1) {
+                        case 1:
+                          msg = 'item room';
+                          getItem();
+                          break;
+                        case 2:
+                          fight = true;
+                          break;
+                        case 3:
+                          msg = 'empty room';
+                          break;
+                      }
+                    } else {
+                      msg = 'no forward room';
+                    }
+                  });
+                },
+                child: const Text('forward'),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        if ((genMap.map)
+                            .contains(genMap.curPosition - 1)) {
+                          genMap.curPosition--;
+                          if(!(genMap.lastpo).contains(genMap.curPosition)){
+                            (genMap.lastpo).add(genMap.curPosition);
+                          }
+                          switch (Random().nextInt(3) + 1) {
+                            case 1:
+                              msg = 'item room';
+                              getItem();
+                              break;
+                            case 2:
+                              fight = true;
+                              break;
+                            case 3:
+                              msg = 'empty room';
+                              break;
+                          }
+                        } else {
+                          msg = 'no left room';
+                        }
+                      });
+                    },
+                    child: const Text('left'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        if ((genMap.map)
+                            .contains(genMap.curPosition + 1)) {
+                          genMap.curPosition++;
+                          if(!(genMap.lastpo).contains(genMap.curPosition)){
+                            (genMap.lastpo).add(genMap.curPosition);
+                          }
+                          switch (Random().nextInt(3) + 1) {
+                            case 1:
+                              msg = 'item room';
+                              getItem();
+                              break;
+                            case 2:
+                              fight = true;
+                              break;
+                            case 3:
+                              msg = 'empty room';
+                              break;
+                          }
+                        } else {
+                          msg = 'no right room';
+                        }
+                      });
+                    },
+                    child: const Text('right'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+//                               if((genMap.map).sort()==(genMap.lastpo).sort()){
+//                                 msg = 'next leve';
+//                                 genMap = GenMap();
+//                                 Game(head, body, weapon, genMap, player);
+//                               }
+                    if ((genMap.map)
+                        .contains(genMap.curPosition + genMap.row)) {
+                      genMap.curPosition += genMap.row;
+                      if(!(genMap.lastpo).contains(genMap.curPosition)){
+                        (genMap.lastpo).add(genMap.curPosition);
+                      }
+                      switch (Random().nextInt(3) + 1) {
+                        case 1:
+                          msg = 'item room';
+                          getItem();
+                          break;
+                        case 2:
+                          fight = true;
+                          break;
+                        case 3:
+                          msg = 'empty room';
+                          break;
+                      }
+                    } else {
+                      msg = 'no backward room';
+                    }
+                  });
+                },
+                child: const Text('backward'),
+              ),
+            ],
+          )));
 }
 
 class GenMap {
@@ -507,17 +533,17 @@ class MapState extends State<Map> {
           }
           return (genMap.map).contains(index)
               ? Container(
-                  margin: const EdgeInsets.all(1),
-                  color: Colors.red,
-                  height: 30,
-                  width: 30,
-                )
+            margin: const EdgeInsets.all(1),
+            color: Colors.red,
+            height: 30,
+            width: 30,
+          )
               : Container(
-                  margin: const EdgeInsets.all(1),
-                  color: Colors.blue,
-                  height: 30,
-                  width: 30,
-                );
+            margin: const EdgeInsets.all(1),
+            color: Colors.blue,
+            height: 30,
+            width: 30,
+          );
         });
   }
 }
