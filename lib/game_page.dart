@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'package:xml/xml.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class GamePage extends StatefulWidget {
-  const GamePage({super.key});
+  bool loadData;
+  GamePage(this.loadData, {super.key});
 
   @override
-  State<GamePage> createState() => GamePageState();
+  State<GamePage> createState() => GamePageState(this.loadData);
 }
 
 class Monster {
@@ -67,11 +71,53 @@ class Weapon {
 
 class GamePageState extends State<GamePage> {
   int _selectedIndex = 1;
+  bool loadData;
+
+  GamePageState(this.loadData);
+
   Head head = Head();
   Body body = Body();
   Weapon weapon = Weapon();
   GenMap genMap = GenMap();
   Player player = Player();
+
+  late double curPosition;
+  late List<double> lastpo;
+  late List<double> map;
+
+  @override
+  Future<void> initSate() async {
+    super.initState();
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = await directory.path;
+    final file = await File('$path/mapdata.xml');
+    final contents = await file.readAsString();
+    final raw = XmlDocument.parse(contents);
+
+    setState(() {
+      print(loadData);
+      if (loadData) {
+        curPosition = raw.findElements('curPosition') as double;
+        lastpo = raw
+            .findAllElements('lastpoList')
+            .map<Text>((e) => Text(e.findElements('lastpo').first.text))
+            .cast<double>()
+            .toList();
+        map = raw
+            .findAllElements('mapList')
+            .map<Text>((e) => Text(e.findElements('map').first.text))
+            .cast<double>()
+            .toList();
+        print(lastpo);
+        print(map);
+      } else {
+        curPosition = genMap.curPosition;
+        lastpo = genMap.lastpo;
+        map = genMap.map;
+      }
+    });
+  }
 
   late final List<Widget> _widgetOptions = <Widget>[
     Attributes(head, body, weapon, player),
@@ -252,6 +298,27 @@ class GameState extends State<Game> {
           break;
       }
     });
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/mapdata.xml');
+  }
+
+  Future<double> readData() async {
+    final file = await _localFile;
+    final contents = await file.readAsString();
+    return double.parse(contents);
+  }
+
+  Future<File> writeData(double counter) async {
+    final file = await _localFile;
+    return file.writeAsString('$counter');
   }
 
   @override
@@ -468,9 +535,36 @@ class GameState extends State<Game> {
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final builder = XmlBuilder();
+                        builder.processing('xml', 'version="1.0"');
+                        builder.element('data', nest: () {
+                          builder.element('mapList', nest: () {
+                            for (var x in genMap.map) {
+                              builder.element('map', nest: x);
+                            }
+                          });
+                          builder.element('mapList', nest: () {
+                            for (var y in genMap.lastpo) {
+                              builder.element('lastpo', nest: y);
+                            }
+                          });
+                          builder.element('curPosition', nest: 132.00);
+                        });
+                        final document = builder.buildDocument();
+                        print(document);
+                        final file = await _localFile;
+                        file.writeAsString(document as String);
+                      },
                       child: const Text('save game'),
-                    )
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        exit(0);
+                      },
+                      child: const Text('Exit Game'),
+                    ),
                   ],
                 )));
 }

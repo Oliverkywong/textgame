@@ -29,7 +29,7 @@ class MenuPageState extends State<MenuPage> {
                 style: style,
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return const GamePage();
+                    return GamePage(false);
                   }));
                 },
                 child: const Text('New Game'),
@@ -37,7 +37,11 @@ class MenuPageState extends State<MenuPage> {
               const SizedBox(height: 10),
               ElevatedButton(
                 style: style,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return GamePage(true);
+                  }));
+                },
                 child: const Text('Load Game'),
               ),
               const SizedBox(height: 10),

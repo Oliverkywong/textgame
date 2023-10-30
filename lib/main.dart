@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:textgame/menu_page.dart';
 
 // import 'package:textgame/Data.dart';
-import 'package:xml/xml.dart' as xml;
+import 'package:xml/xml.dart';
 
 void main() {
   runApp(const MyApp());
