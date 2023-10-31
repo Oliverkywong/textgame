@@ -85,15 +85,15 @@ class GamePageState extends State<GamePage> {
   late List<double> lastpo;
   late List<double> map;
 
-  @override
   Future<void> initSate() async {
     super.initState();
 
     final directory = await getApplicationDocumentsDirectory();
-    final path = await directory.path;
-    final file = await File('$path/mapdata.xml');
+    final path = directory.path;
+    final file = File('$path/mapdata.xml');
     final contents = await file.readAsString();
     final raw = XmlDocument.parse(contents);
+    print(raw);
 
     setState(() {
       print(loadData);
@@ -549,7 +549,8 @@ class GameState extends State<Game> {
                               builder.element('lastpo', nest: y);
                             }
                           });
-                          builder.element('curPosition', nest: 132.00);
+                          builder.element('curPosition',
+                              nest: genMap.curPosition);
                         });
                         final document = builder.buildDocument();
                         print(document);
@@ -561,9 +562,9 @@ class GameState extends State<Game> {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
-                        exit(0);
+                        Navigator.pop(context);
                       },
-                      child: const Text('Exit Game'),
+                      child: const Text('back to menu'),
                     ),
                   ],
                 )));
