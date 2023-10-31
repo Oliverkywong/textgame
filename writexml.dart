@@ -8,61 +8,49 @@ void main() {
   runApp(
     MaterialApp(
       title: 'Reading and Writing Files',
-      home: FlutterDemo(storage: CounterStorage()),
+      home: FlutterDemo(storage: Storage()),
     ),
   );
 }
 
-class CounterStorage {
+class Storage {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
-
     return directory.path;
   }
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/counter.txt');
+    return File('$path/mapdata.txt');
   }
 
-  Future<int> readCounter() async {
-    try {
+  Future<double> readData() async {
       final file = await _localFile;
-
-      // Read the file
       final contents = await file.readAsString();
-
-      return int.parse(contents);
-    } catch (e) {
-      // If encountering an error, return 0
-      return 0;
-    }
+      return double.parse(contents);
   }
 
-  Future<File> writeCounter(int counter) async {
+  Future<File> writeData(double data) async {
     final file = await _localFile;
-
-    // Write the file
-    return file.writeAsString('$counter');
+    return file.writeAsString('$data');
   }
 }
 
 class FlutterDemo extends StatefulWidget {
   const FlutterDemo({super.key, required this.storage});
-
-  final CounterStorage storage;
+  final Storage storage;
 
   @override
   State<FlutterDemo> createState() => _FlutterDemoState();
 }
 
 class _FlutterDemoState extends State<FlutterDemo> {
-  int _counter = 0;
+  double _counter = 0;
 
   @override
   void initState() {
     super.initState();
-    widget.storage.readCounter().then((value) {
+    widget.storage.readData().then((value) {
       setState(() {
         _counter = value;
       });
@@ -75,7 +63,7 @@ class _FlutterDemoState extends State<FlutterDemo> {
     });
 
     // Write the variable as a string to the file.
-    return widget.storage.writeCounter(_counter);
+    return widget.storage.writeData(_counter);
   }
 
   @override
