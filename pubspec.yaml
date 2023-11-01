@@ -57,6 +57,7 @@ flutter:
   assets:
     - assets/images/Q1.png
     - assets/images/Q1_1.png
+    - assets/data.xml
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

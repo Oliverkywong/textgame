@@ -32,7 +32,7 @@ class Storage {
 
   Future<File> writeData(double data) async {
     final file = await _localFile;
-    return file.writeAsString('$data');
+    return file.writeAsString(data.toString());
   }
 }
 
