@@ -174,6 +174,7 @@ class GamePageState extends State<GamePage> {
           // print(lastpo);
           // print(map);
         } else {
+          genMap.gen();
           curPosition = genMap.curPosition;
           lastpo = genMap.lastpo;
           map = genMap.map;
@@ -709,11 +710,11 @@ class MapState extends State<Map> {
   GenMap genMap;
   MapState(this.genMap);
 
-  @override
-  void initState() {
-    super.initState();
-    genMap.gen();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   genMap.gen();
+  // }
 
   Container mapBox(color, icon) {
     Color? color;
