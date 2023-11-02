@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:textgame/module.dart';
+import 'package:textgame/map_page.dart';
+import 'package:textgame/attr_page.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:xml/xml.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
 
 class GamePage extends StatefulWidget {
   bool loadData;
@@ -13,62 +17,6 @@ class GamePage extends StatefulWidget {
 
   @override
   State<GamePage> createState() => GamePageState(this.loadData);
-}
-
-class Monster {
-  String name = 'Monster';
-  late int lv = 1;
-  late double hp = 100 * (1 + (lv - 1) / 10);
-  late double attack = 8 * (1 + (lv - 1) / 10);
-  late double giveExp = 100 * (1 + (lv - 1) / 10);
-}
-
-class Player {
-  String name = 'Player';
-  late int lv = 1;
-  late double hp = 100 * (1 + (lv - 1) / 10);
-  late double attack = 10 * (1 + (lv - 1) / 10);
-  late double exp = 0;
-  late double lvUp = 100 * ((lv - 1) * 5);
-
-  void checkLVup() {
-    if (exp >= lvUp) {
-      lv++;
-    }
-  }
-
-  bool hasHead = false;
-  void getHead() {
-    hasHead = true;
-  }
-
-  bool hasBody = false;
-  void getBody() {
-    hasBody = true;
-  }
-
-  bool hasWeap = false;
-  void getWeap() {
-    hasWeap = true;
-  }
-}
-
-class Head {
-  String name = 'item1';
-  String des = 'HP + 50';
-  int abt = 50;
-}
-
-class Body {
-  String name = 'item2';
-  String des = 'Def + 5';
-  int abt = 5;
-}
-
-class Weapon {
-  String name = 'item2';
-  String des = 'Atk + 10';
-  int abt = 10;
 }
 
 class Storage {
@@ -122,6 +70,23 @@ class Storage {
   Future<File> writeData(String data) async {
     final file = await _localFile;
     return file.writeAsString(data);
+  }
+
+  Future<File> get _jsonFile async {
+    final path = await _localPath;
+    return File('$path/playerdata.json');
+  }
+
+  Future<dynamic> readJson() async {
+    final file = await _jsonFile;
+    final contents = await file.readAsString();
+    var json = jsonDecode(contents);
+    return json;
+  }
+
+  void writeJson(Object data) async {
+    final file = await _jsonFile;
+    file.writeAsStringSync(json.encode(data));
   }
 }
 
@@ -179,6 +144,9 @@ class GamePageState extends State<GamePage> {
           lastpo = genMap.lastpo;
           map = genMap.map;
         }
+        widget.storage.readJson().then((data) {
+          print(data);
+        });
       });
     });
     // final directory = await getApplicationDocumentsDirectory();
@@ -252,83 +220,6 @@ class GamePageState extends State<GamePage> {
   }
 }
 
-class Attributes extends StatefulWidget {
-  Head head;
-  Body body;
-  Weapon weapon;
-  Player player;
-  Attributes(this.head, this.body, this.weapon, this.player, {super.key});
-  @override
-  State<StatefulWidget> createState() {
-    return AttributesState(head, body, weapon, player);
-  }
-}
-
-class AttributesState extends State<Attributes> {
-  Head head;
-  Body body;
-  Weapon weapon;
-  Player player;
-  AttributesState(this.head, this.body, this.weapon, this.player);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-          body: Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('    head: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: player.hasHead
-                  ? ListTile(
-                      title: Text(head.name),
-                      subtitle: Text(head.des),
-                    )
-                  : const Center(child: Text('No head')))
-        ]),
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('    body: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: player.hasBody
-                  ? ListTile(
-                      title: Text(body.name),
-                      subtitle: Text(body.des),
-                    )
-                  : const Center(child: Text('No body')))
-        ]),
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('weapon: '),
-          Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-              ),
-              width: 100,
-              height: 70,
-              child: player.hasWeap
-                  ? ListTile(
-                      title: Text(weapon.name),
-                      subtitle: Text(weapon.des),
-                    )
-                  : const Center(child: Text('No weapon')))
-        ]),
-      ])));
-}
-
 class Game extends StatefulWidget {
   Head head;
   Body body;
@@ -353,7 +244,7 @@ class GameState extends State<Game> {
   Player player;
   GameState(this.head, this.body, this.weapon, this.genMap, this.player);
 
-  Monster monster = Monster();
+  late Monster monster = Monster(player.lv);
   bool fight = false;
   bool canPress = true;
 
@@ -419,7 +310,7 @@ class GameState extends State<Game> {
                                       fight = false;
                                       player.exp += monster.giveExp;
                                       player.checkLVup();
-                                      monster = Monster();
+                                      monster = Monster(player.lv);
                                     });
                                   } else {
                                     setState(() {
@@ -440,7 +331,7 @@ class GameState extends State<Game> {
                           onPressed: () {
                             setState(() {
                               fight = false;
-                              monster = Monster();
+                              monster = Monster(player.lv);
                             });
                           },
                           child: const Text('Escape'),
@@ -635,6 +526,17 @@ class GameState extends State<Game> {
                         widget.storage.writeData(document.toString());
                         // final file = await _localFile;
                         // file.writeAsString(document as String);
+                        var playerdata = {
+                          'name': player.name,
+                          'lv': player.lv,
+                          'hp': player.hp,
+                          'attack': player.attack,
+                          'exp': player.exp,
+                          'hasHead': player.hasHead,
+                          'hasBody': player.hasBody,
+                          'hasWeap': player.hasWeap,
+                        };
+                        widget.storage.writeJson(playerdata);
                       },
                       child: const Text('save game'),
                     ),
@@ -647,123 +549,4 @@ class GameState extends State<Game> {
                     ),
                   ],
                 )));
-}
-
-class GenMap {
-  int row = 11;
-  int col = 11;
-  int roomCount = Random().nextInt(5) + 16;
-  late double position = (row * col - 1) / 2;
-  late double curPosition = position;
-  late List<double> lastpo = [position];
-  late double room = position;
-  late List<double> map = [position];
-  List gen() {
-    while (map.length < roomCount) {
-      switch (Random().nextInt(4) + 1) {
-        case 1:
-          room = room + 1;
-          if (map.contains(room) || room < 0 || room > 120) {
-            continue;
-          } else {
-            map.add(room);
-          }
-          break;
-        case 2:
-          room = room - 1;
-          if (map.contains(room) || room < 0 || room > 120) {
-            continue;
-          } else {
-            map.add(room);
-          }
-          break;
-        case 3:
-          room = room + row;
-          if (map.contains(room) || room < 0 || room > 120) {
-            continue;
-          } else {
-            map.add(room);
-          }
-          break;
-        case 4:
-          room = room - row;
-          if (map.contains(room) || room < 0 || room > 120) {
-            continue;
-          } else {
-            map.add(room);
-          }
-          break;
-      }
-    }
-    return map;
-  }
-}
-
-class Map extends StatefulWidget {
-  GenMap genMap;
-  Map(this.genMap, {super.key});
-  @override
-  State<StatefulWidget> createState() => MapState(genMap);
-}
-
-class MapState extends State<Map> {
-  GenMap genMap;
-  MapState(this.genMap);
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   genMap.gen();
-  // }
-
-  Container mapBox(color, icon) {
-    Color? color;
-    Icon? icon;
-    return Container(
-        margin: const EdgeInsets.all(1),
-        color: color,
-        height: 30,
-        width: 30,
-        child: icon);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: genMap.row,
-        ),
-        itemCount: genMap.row * genMap.col,
-        itemBuilder: (BuildContext context, int index) {
-          if (index == genMap.curPosition) {
-            return Container(
-                margin: const EdgeInsets.all(1),
-                color: Colors.red,
-                height: 30,
-                width: 30,
-                child: const Icon(Icons.adjust));
-          }
-          if ((genMap.lastpo).contains(index)) {
-            return Container(
-              margin: const EdgeInsets.all(1),
-              color: Colors.green,
-              height: 30,
-              width: 30,
-            );
-          }
-          return (genMap.map).contains(index)
-              ? Container(
-                  margin: const EdgeInsets.all(1),
-                  color: Colors.red,
-                  height: 30,
-                  width: 30,
-                )
-              : Container(
-                  margin: const EdgeInsets.all(1),
-                  color: Colors.blue,
-                  height: 30,
-                  width: 30,
-                );
-        });
-  }
 }
