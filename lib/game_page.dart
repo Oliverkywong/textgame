@@ -83,25 +83,36 @@ class Storage {
   }
 
   Future<dynamic> readData() async {
-    late String curPosition;
-    late List<String> lastpo;
-    late List<String> map;
+    late double curPosition;
+    late List<double> lastpo = [];
+    late List<double> map = [];
     final file = await _localFile;
     final contents = await file.readAsString();
     var raw = XmlDocument.parse(contents);
-    print('readData raw');
-    print(raw);
-    curPosition = raw
-            .findAllElements('curPosition')
-            .map<String>((e) => e.findElements('Position').first.innerText).toString();
-    lastpo = raw
-        .findAllElements('lastpoList')
-        .map<String>((e) => e.findElements('lastpo').first.text)
-        .toList();
-    map = raw
-        .findAllElements('mapList')
-        .map<String>((e) => e.findElements('map').first.text)
-        .toList();
+    final data = raw.findElements('data').first;
+    final lastpoList = data.findElements('lastpoList');
+    final mapList = data.findElements('mapList');
+    for (final lastpodata in lastpoList) {
+      final value = lastpodata.findElements('lastpo').first.text;
+      lastpo.add(double.parse(value));
+    }
+    for (final mapdata in mapList) {
+      final value = mapdata.findElements('map').first.text;
+      map.add(double.parse(value));
+    }
+    final value = data.findElements('Position').first.text;
+    curPosition = double.parse(value);
+    // curPosition = raw
+    //         .findAllElements('curPosition')
+    //         .map<String>((e) => e.findElements('Position').first.innerText).toString();
+    // lastpo = raw
+    //     .findAllElements('lastpoList')
+    //     .map<String>((e) => e.findElements('lastpo').first.text)
+    //     .toList();
+    // map = raw
+    //     .findAllElements('mapList')
+    //     .map<String>((e) => e.findElements('map').first.text)
+    //     .toList();
     print(curPosition);
     print(lastpo);
     print(map);
