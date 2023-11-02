@@ -32,38 +32,26 @@ class Storage {
 
   Future<dynamic> readData() async {
     late double curPosition;
-    late List<double> lastpo = [];
-    late List<double> map = [];
+    var lastpo = [];
+    var map = [];
     final file = await _localFile;
     final contents = await file.readAsString();
     var raw = XmlDocument.parse(contents);
     final data = raw.findElements('data').first;
-    final lastpoList = data.findElements('lastpoList');
-    final mapList = data.findElements('mapList');
-    for (final lastpodata in lastpoList) {
-      final value = lastpodata.findElements('lastpo').first.text;
-      lastpo.add(double.parse(value));
-    }
-    for (final mapdata in mapList) {
-      final value = mapdata.findElements('map').first.text;
-      map.add(double.parse(value));
-    }
-    final value = data.findElements('Position').first.text;
+    final lastpoList = data.findElements('lastpo').first.innerText;
+    var lastpoData = lastpoList.split(',');
+    final mapList = data.findElements('map').first.innerText;
+    var mapData = mapList.split(',');
+    final value = data.findElements('curPosition').first.innerText;
     curPosition = double.parse(value);
-    // curPosition = raw
-    //         .findAllElements('curPosition')
-    //         .map<String>((e) => e.findElements('Position').first.innerText).toString();
-    // lastpo = raw
-    //     .findAllElements('lastpoList')
-    //     .map<String>((e) => e.findElements('lastpo').first.text)
-    //     .toList();
-    // map = raw
-    //     .findAllElements('mapList')
-    //     .map<String>((e) => e.findElements('map').first.text)
-    //     .toList();
-    print(curPosition);
-    print(lastpo);
-    print(map);
+    for(var x in mapData){
+      if(x=='')break;
+      map.add(double.parse(x));
+    }
+    for(var x in lastpoData){
+      if(x=='')break;
+      lastpo.add(double.parse(x));
+    }
     return {'curPosition': curPosition, 'lastpo': lastpo, 'map': map};
   }
 
@@ -101,43 +89,21 @@ class GamePageState extends State<GamePage> {
   Weapon weapon = Weapon();
   GenMap genMap = GenMap();
   Player player = Player();
+  // late dynamic player ;
 
   late double curPosition;
-  late List<double> lastpo;
-  late List<double> map;
+  late List<dynamic> lastpo;
+  late List<dynamic> map;
 
   @override
   void initState() {
     super.initState();
-    // Future<String> readData() async {
-    //   final file = await _localFile;
-    //   final contents = await file.readAsString();
-    //   return XmlDocument.parse(contents);
-    // }
     widget.storage.readData().then((data) {
       setState(() {
-        print(loadData);
-        print(data);
         if (loadData) {
-          curPosition = double.parse(data.curPosition);
-          lastpo = (data.lastpo).map(double.parse).toList();
-          map = (data.map).map(double.parse).toList();
-          // curPosition = raw
-          //   .findAllElements('curPosition')
-          //   .map<Text>((e) => Text(e.findElements('Position').first.text))
-          //   .cast<double>();
-          // lastpo = raw
-          //     .findAllElements('lastpoList')
-          //     .map<Text>((e) => Text(e.findElements('lastpo').first.text))
-          //     .cast<double>()
-          //     .toList();
-          // map = raw
-          //     .findAllElements('mapList')
-          //     .map<Text>((e) => Text(e.findElements('map').first.text))
-          //     .cast<double>()
-          //     .toList();
-          // print(lastpo);
-          // print(map);
+          curPosition = data['curPosition'];
+          map = data['map'];
+          lastpo = data['lastpo'];
         } else {
           genMap.gen();
           curPosition = genMap.curPosition;
@@ -145,38 +111,14 @@ class GamePageState extends State<GamePage> {
           map = genMap.map;
         }
         widget.storage.readJson().then((data) {
-          print(data);
+          if (loadData) {
+            player = data;
+          }else{
+            player = Player();
+          }
         });
       });
     });
-    // final directory = await getApplicationDocumentsDirectory();
-    // final path = directory.path;
-    // final file = File('$path/mapdata.xml');
-    // final contents = await file.readAsString();
-    // final raw = XmlDocument.parse(contents);
-    // setState(() {
-    //   print(loadData);
-    //   print(raw);
-    //   if (loadData) {
-    //     curPosition = raw.findElements('curPosition') as double;
-    //     lastpo = raw
-    //         .findAllElements('lastpoList')
-    //         .map<Text>((e) => Text(e.findElements('lastpo').first.text))
-    //         .cast<double>()
-    //         .toList();
-    //     map = raw
-    //         .findAllElements('mapList')
-    //         .map<Text>((e) => Text(e.findElements('map').first.text))
-    //         .cast<double>()
-    //         .toList();
-    //     print(lastpo);
-    //     print(map);
-    //   } else {
-    //     curPosition = genMap.curPosition;
-    //     lastpo = genMap.lastpo;
-    //     map = genMap.map;
-    //   }
-    // });
   }
 
   late final List<Widget> _widgetOptions = <Widget>[
@@ -501,31 +443,21 @@ class GameState extends State<Game> {
                     ElevatedButton(
                       onPressed: () async {
                         final builder = XmlBuilder();
-                        // builder.processing('xml', 'version="1.0"');
+                        late String mapXml = '';
+                        for(var x in genMap.map){
+                          mapXml += '$x,';
+                        }
+                        late String lastpoXml = '';
+                        for(var x in genMap.lastpo){
+                          lastpoXml += '$x,';
+                        }
                         builder.element('data', nest: () {
-                          builder.element('mapList', nest: () {
-                            for (var x in genMap.map) {
-                              builder.element('map', nest: x);
-                            }
-                          });
-                          builder.element('lastpoList', nest: () {
-                            for (var y in genMap.lastpo) {
-                              builder.element('lastpo', nest: y);
-                            }
-                          });
-                          builder.element('curPosition', nest: () {
-                            for (var z = 0; z < 1; z++) {
-                              builder.element('Position',
-                                  nest: genMap.curPosition);
-                            }
-                          });
+                          builder.element('map', nest:mapXml);
+                          builder.element('lastpo', nest:lastpoXml);
+                          builder.element('curPosition', nest:genMap.curPosition);
                         });
                         final document = builder.buildDocument();
-                        // print('save data');
-                        // print(document);
                         widget.storage.writeData(document.toString());
-                        // final file = await _localFile;
-                        // file.writeAsString(document as String);
                         var playerdata = {
                           'name': player.name,
                           'lv': player.lv,
