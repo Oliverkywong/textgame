@@ -32,8 +32,8 @@ class Storage {
 
   Future<dynamic> readData() async {
     late double curPosition;
-    var lastpo = [];
-    var map = [];
+    List<double> lastpo = [];
+    List<double> map = [];
     final file = await _localFile;
     final contents = await file.readAsString();
     var raw = XmlDocument.parse(contents);
@@ -44,12 +44,12 @@ class Storage {
     var mapData = mapList.split(',');
     final value = data.findElements('curPosition').first.innerText;
     curPosition = double.parse(value);
-    for(var x in mapData){
-      if(x=='')break;
+    for (var x in mapData) {
+      if (x == '') break;
       map.add(double.parse(x));
     }
-    for(var x in lastpoData){
-      if(x=='')break;
+    for (var x in lastpoData) {
+      if (x == '') break;
       lastpo.add(double.parse(x));
     }
     return {'curPosition': curPosition, 'lastpo': lastpo, 'map': map};
@@ -89,7 +89,6 @@ class GamePageState extends State<GamePage> {
   Weapon weapon = Weapon();
   GenMap genMap = GenMap();
   Player player = Player();
-  // late dynamic player ;
 
   late double curPosition;
   late List<dynamic> lastpo;
@@ -101,20 +100,25 @@ class GamePageState extends State<GamePage> {
     widget.storage.readData().then((data) {
       setState(() {
         if (loadData) {
-          curPosition = data['curPosition'];
-          map = data['map'];
-          lastpo = data['lastpo'];
+          genMap.curPosition = data['curPosition'];
+          genMap.map = data['map'];
+          genMap.lastpo = data['lastpo'];
         } else {
           genMap.gen();
-          curPosition = genMap.curPosition;
-          lastpo = genMap.lastpo;
-          map = genMap.map;
         }
         widget.storage.readJson().then((data) {
           if (loadData) {
-            player = data;
-          }else{
-            player = Player();
+            player.name = data['name'];
+            player.lv = data['lv'];
+            player.hp = data['hp'];
+            player.attack = data['attack'];
+            player.exp = data['exp'];
+            player.hasHead = data['hasHead'];
+            player.hasBody = data['hasBody'];
+            player.hasWeap = data['hasWeap'];
+          } else {
+            player =
+                Player();
           }
         });
       });
@@ -444,17 +448,18 @@ class GameState extends State<Game> {
                       onPressed: () async {
                         final builder = XmlBuilder();
                         late String mapXml = '';
-                        for(var x in genMap.map){
+                        for (var x in genMap.map) {
                           mapXml += '$x,';
                         }
                         late String lastpoXml = '';
-                        for(var x in genMap.lastpo){
+                        for (var x in genMap.lastpo) {
                           lastpoXml += '$x,';
                         }
                         builder.element('data', nest: () {
-                          builder.element('map', nest:mapXml);
-                          builder.element('lastpo', nest:lastpoXml);
-                          builder.element('curPosition', nest:genMap.curPosition);
+                          builder.element('map', nest: mapXml);
+                          builder.element('lastpo', nest: lastpoXml);
+                          builder.element('curPosition',
+                              nest: genMap.curPosition);
                         });
                         final document = builder.buildDocument();
                         widget.storage.writeData(document.toString());

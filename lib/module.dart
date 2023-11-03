@@ -23,6 +23,7 @@ class Player {
   void checkLVup() {
     if (exp >= lvUp) {
       lv++;
+      exp=0;
     }
   }
 

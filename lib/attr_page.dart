@@ -24,6 +24,11 @@ class AttributesState extends State<Attributes> {
   Widget build(BuildContext context) => Scaffold(
           body: Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                Text('name: ${player.name}'),
+                Text('lv: ${player.lv}'),
+                Text('hp: ${player.hp}'),
+                Text('attack: ${player.attack}'),
+                Text('exp: ${player.exp}'),
         Row(mainAxisSize: MainAxisSize.min, children: [
           const Text('    head: '),
           Container(
